@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { postService } from "./post.service";
 import { PostStatus } from "../../../generated/prisma/enums";
+import { number, string } from "better-auth/*";
+import paginationSortingHelper from "../../Helper/paginationSortingHelper";
 
 const createPost = async (req: Request, res: Response) => {
   const user = req.user;
@@ -37,13 +39,22 @@ const getPost = async (req: Request, res: Response) => {
         : undefined
       : undefined;
     const status = req.query.status as PostStatus | undefined;
-    const authorId = req.query.authorId as string| undefined
+    const authorId = req.query.authorId as string | undefined;
+
+    const { page, limit, skip, sortBy, sortOrder } = paginationSortingHelper(
+      req.query
+    );
+
     const result = await postService.getPost({
       search: searchType,
       tags,
       isFeatured,
       status,
-      authorId
+      authorId,
+      limit,
+      skip,
+      sortBy,
+      sortOrder,
     });
     res.status(200).json(result);
   } catch (error) {
@@ -54,7 +65,25 @@ const getPost = async (req: Request, res: Response) => {
   }
 };
 
+const getPostById = async (req: Request, res: Response) => {
+  try {
+    const { postId } = req.params;
+    if (!postId) {
+      throw new Error("Post ID is required");
+    }
+
+    const result = await postService.getPostById(postId);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({
+      data: "Fetching post failed",
+      details: error,
+    });
+  }
+};
+
 export const postController = {
   createPost,
   getPost,
+  getPostById,
 };

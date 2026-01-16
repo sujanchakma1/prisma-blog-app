@@ -9,6 +9,8 @@ const router = express.Router();
 
 
 router.post("/", auth(UserRoles.USER), postController.createPost);
+
 router.get("/", postController.getPost);
+router.get("/:postId", postController.getPostById);
 
 export const postRouter = router;
