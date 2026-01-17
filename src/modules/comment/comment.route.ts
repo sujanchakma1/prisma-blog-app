@@ -9,5 +9,16 @@ router.post(
   auth(UserRoles.USER, UserRoles.ADMIN),
   commentController.createComment
 );
-
+router.get("/:commentId", commentController.getCommentsById);
+router.get("/author/:authorId", commentController.getCommentsByAuthorId);
+router.delete(
+  "/:commentId",
+  auth(UserRoles.ADMIN, UserRoles.USER),
+  commentController.deleteComment
+);
+router.patch(
+  "/:commentId",
+  auth(UserRoles.ADMIN, UserRoles.USER),
+  commentController.updateComment
+);
 export const commentRouter = router;
