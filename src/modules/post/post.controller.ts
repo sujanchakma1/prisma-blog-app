@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { postService } from "./post.service";
 import { PostStatus } from "../../../generated/prisma/enums";
-import { number, string } from "better-auth/*";
 import paginationSortingHelper from "../../Helper/paginationSortingHelper";
+import { UserRoles } from "../../Middleware/auth";
 
 const createPost = async (req: Request, res: Response) => {
   const user = req.user;
@@ -35,14 +35,14 @@ const getPost = async (req: Request, res: Response) => {
       ? req.query.isFeatured === "true"
         ? true
         : req.query.isFeatured === "false"
-        ? false
-        : undefined
+          ? false
+          : undefined
       : undefined;
     const status = req.query.status as PostStatus | undefined;
     const authorId = req.query.authorId as string | undefined;
 
     const { page, limit, skip, sortBy, sortOrder } = paginationSortingHelper(
-      req.query
+      req.query,
     );
 
     const result = await postService.getPost({
@@ -82,8 +82,52 @@ const getPostById = async (req: Request, res: Response) => {
   }
 };
 
+const getMyPosts = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    console.log(user);
+    if (!user) {
+      throw new Error("User is required");
+    }
+    const result = await postService.getMyPosts(user.id as string);
+    res.status(200).json(result);
+  } catch (error: any) {
+    console.log(error);
+    res.status(400).json({
+      data: "Fetching post failed",
+      details: error?.message,
+    });
+  }
+};
+
+const updatePost = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    const { postId } = req.params;
+    if (!user) {
+      throw new Error("User is required");
+    }
+    const isAdmin = user.role === UserRoles.ADMIN;
+    const result = await postService.updatePost(
+      postId as string,
+      req.body,
+      user.id as string,
+      isAdmin as boolean,
+    );
+    res.status(200).json(result);
+  } catch (error: any) {
+    console.log(error);
+    res.status(400).json({
+      data: "Post  Update failed",
+      details: error?.message,
+    });
+  }
+};
+
 export const postController = {
   createPost,
   getPost,
   getPostById,
+  getMyPosts,
+  updatePost,
 };

@@ -8,7 +8,7 @@ import { prisma } from "../../lib/prisma";
 
 const createPost = async (
   data: Omit<Post, "id" | "createdAt" | "updatedAt" | "authorId">,
-  userId: string
+  userId: string,
 ) => {
   const result = await prisma.post.create({
     data: {
@@ -156,8 +156,68 @@ const getPostById = async (postId: string) => {
   return result;
 };
 
+const getMyPosts = async (authorId: string) => {
+  await prisma.user.findUniqueOrThrow({
+    where: {
+      id: authorId,
+      status: "ACTIVE",
+    },
+    select: {
+      id: true,
+    },
+  });
+  const result = await prisma.post.findMany({
+    where: {
+      authorId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    include: {
+      _count: {
+        select: {
+          comments: true,
+        },
+      },
+    },
+  });
+  return result;
+};
+
+const updatePost = async (
+  postId: string,
+  data: Partial<Post>,
+  authorId: string,
+  isAdmin: boolean,
+) => {
+  const postData = await prisma.post.findUniqueOrThrow({
+    where: {
+      id: postId,
+    },
+    select: {
+      id: true,
+      authorId: true,
+    },
+  });
+  if (!isAdmin && postData.authorId !== authorId) {
+    throw new Error("Unauthorized to update this post");
+  }
+  if (!isAdmin) {
+    delete data.isFeatured;
+  }
+  const result = await prisma.post.update({
+    where: {
+      id: postId,
+    },
+    data,
+  });
+  return result;
+};
+
 export const postService = {
   createPost,
   getPost,
   getPostById,
+  getMyPosts,
+  updatePost,
 };

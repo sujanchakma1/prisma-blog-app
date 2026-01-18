@@ -7,18 +7,23 @@ const router = express.Router();
 router.post(
   "/",
   auth(UserRoles.USER, UserRoles.ADMIN),
-  commentController.createComment
+  commentController.createComment,
 );
 router.get("/:commentId", commentController.getCommentsById);
 router.get("/author/:authorId", commentController.getCommentsByAuthorId);
 router.delete(
   "/:commentId",
   auth(UserRoles.ADMIN, UserRoles.USER),
-  commentController.deleteComment
+  commentController.deleteComment,
 );
 router.patch(
   "/:commentId",
   auth(UserRoles.ADMIN, UserRoles.USER),
-  commentController.updateComment
+  commentController.updateComment,
+);
+router.patch(
+  "/moderate/:commentId",
+  auth(UserRoles.ADMIN),
+  commentController.moderateComment,
 );
 export const commentRouter = router;
