@@ -123,6 +123,28 @@ const updatePost = async (req: Request, res: Response) => {
     });
   }
 };
+const deletePost = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    const { postId } = req.params;
+    if (!user) {
+      throw new Error("User is required");
+    }
+    const isAdmin = user.role === UserRoles.ADMIN;
+    const result = await postService.deletePost(
+      postId as string,
+      user.id as string,
+      isAdmin as boolean,
+    );
+    res.status(200).json(result);
+  } catch (error: any) {
+    console.log(error);
+    res.status(400).json({
+      data: "Post  Delete failed",
+      details: error?.message,
+    });
+  }
+};
 
 export const postController = {
   createPost,
@@ -130,4 +152,5 @@ export const postController = {
   getPostById,
   getMyPosts,
   updatePost,
+  deletePost
 };
