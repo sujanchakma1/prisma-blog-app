@@ -1,32 +1,39 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { commentService } from "./comment.service";
+import { NEVER } from "better-auth/*";
 
-const createComment = async (req: Request, res: Response) => {
+const createComment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     req.body.authorId = req.user?.id;
     const result = await commentService.createComment(req.body);
     res.status(201).json(result);
   } catch (error) {
-    res.status(400).json({
-      data: "Comment created failed",
-      details: error,
-    });
+    next(error);
   }
 };
-const getCommentsById = async (req: Request, res: Response) => {
+const getCommentsById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const { commentId } = req.params;
     const result = await commentService.getCommentsById(commentId as string);
     res.status(201).json(result);
   } catch (error) {
-    res.status(400).json({
-      data: "Comment get failed",
-      details: error,
-    });
+    next(error);
   }
 };
 
-const getCommentsByAuthorId = async (req: Request, res: Response) => {
+const getCommentsByAuthorId = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const { authorId } = req.params;
     const result = await commentService.getCommentsByAuthorId(
@@ -34,14 +41,15 @@ const getCommentsByAuthorId = async (req: Request, res: Response) => {
     );
     res.status(201).json(result);
   } catch (error) {
-    res.status(400).json({
-      data: "Comment get failed",
-      details: error,
-    });
+    next(error);
   }
 };
 
-const deleteComment = async (req: Request, res: Response) => {
+const deleteComment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const { commentId } = req.params;
     const user = req.user;
@@ -51,13 +59,10 @@ const deleteComment = async (req: Request, res: Response) => {
     );
     res.status(201).json(result);
   } catch (error) {
-    res.status(400).json({
-      data: "Comment delete failed",
-      details: error,
-    });
+    next(error);
   }
 };
-const updateComment = async (req: Request, res: Response) => {
+const updateComment = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { commentId } = req.params;
     const user = req.user;
@@ -68,16 +73,11 @@ const updateComment = async (req: Request, res: Response) => {
     );
     res.status(201).json(result);
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Comment update failed";
-    res.status(400).json({
-      data: errorMessage,
-      details: error,
-    });
+    next(error);
   }
 };
 
-const moderateComment = async (req: Request, res: Response) => {
+const moderateComment = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { commentId } = req.params;
     const result = await commentService.moderateComment(
@@ -86,12 +86,7 @@ const moderateComment = async (req: Request, res: Response) => {
     );
     res.status(201).json(result);
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Comment update failed";
-    res.status(400).json({
-      data: errorMessage,
-      details: error,
-    });
+    next(error);
   }
 };
 

@@ -1,10 +1,10 @@
-import { Request, Response } from "express";
+import e, { NextFunction, Request, Response } from "express";
 import { postService } from "./post.service";
 import { PostStatus } from "../../../generated/prisma/enums";
 import paginationSortingHelper from "../../Helper/paginationSortingHelper";
 import { UserRoles } from "../../Middleware/auth";
 
-const createPost = async (req: Request, res: Response) => {
+const createPost = async (req: Request, res: Response, next: NextFunction) => {
   const user = req.user;
   if (!user) {
     return res.status(400).json({
@@ -17,14 +17,11 @@ const createPost = async (req: Request, res: Response) => {
     const result = await postService.createPost(req.body, user.id as string);
     res.status(201).json(result);
   } catch (error) {
-    res.status(400).json({
-      data: "Post created failed",
-      details: error,
-    });
+    next(error);
   }
 };
 
-const getPost = async (req: Request, res: Response) => {
+const getPost = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { search } = req.query;
     const searchType = typeof search === "string" ? search : undefined;
@@ -58,10 +55,7 @@ const getPost = async (req: Request, res: Response) => {
     });
     res.status(200).json(result);
   } catch (error) {
-    res.status(400).json({
-      data: "Post created failed",
-      details: error,
-    });
+    next(error);
   }
 };
 
@@ -82,7 +76,7 @@ const getPostById = async (req: Request, res: Response) => {
   }
 };
 
-const getMyPosts = async (req: Request, res: Response) => {
+const getMyPosts = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user;
     console.log(user);
@@ -93,14 +87,11 @@ const getMyPosts = async (req: Request, res: Response) => {
     res.status(200).json(result);
   } catch (error: any) {
     console.log(error);
-    res.status(400).json({
-      data: "Fetching post failed",
-      details: error?.message,
-    });
+    next(error);
   }
 };
 
-const updatePost = async (req: Request, res: Response) => {
+const updatePost = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user;
     const { postId } = req.params;
@@ -116,14 +107,10 @@ const updatePost = async (req: Request, res: Response) => {
     );
     res.status(200).json(result);
   } catch (error: any) {
-    console.log(error);
-    res.status(400).json({
-      data: "Post  Update failed",
-      details: error?.message,
-    });
+    next(error)
   }
 };
-const deletePost = async (req: Request, res: Response) => {
+const deletePost = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user;
     const { postId } = req.params;
@@ -138,23 +125,15 @@ const deletePost = async (req: Request, res: Response) => {
     );
     res.status(200).json(result);
   } catch (error: any) {
-    console.log(error);
-    res.status(400).json({
-      data: "Post  Delete failed",
-      details: error?.message,
-    });
+    next(error)
   }
 };
-const getStats = async (req: Request, res: Response) => {
+const getStats = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await postService.getStats();
     res.status(200).json(result);
   } catch (error: any) {
-    console.log(error);
-    res.status(400).json({
-      data: "States fetching failed",
-      details: error?.message,
-    });
+    next(error);
   }
 };
 
